@@ -38,7 +38,7 @@ var OggOpusDecoder = function( config, Module ){
   }
 
   this.mainReady = mainReady; // Expose for unit testing
-  this.config = Object.assign({ 
+  this.config = Object.assign({
     bufferLength: 4096, // Define size of outgoing buffer
     decoderSampleRate: 48000, // Desired decoder sample rate.
     outputBufferSampleRate: 48000, // Desired output sample rate. Audio will be resampled
@@ -63,7 +63,9 @@ var OggOpusDecoder = function( config, Module ){
 
 OggOpusDecoder.prototype.decode = function( typedArray ) {
   var dataView = new DataView( typedArray.buffer );
-  this.getPageBoundaries( dataView ).map( function( pageStart ) {
+  const pageBoundaries = this.getPageBoundaries( dataView );
+  const length = pageBoundaries.length - 1;
+  pageBoundaries.map( function( pageStart, j ) {
     var headerType = dataView.getUint8( pageStart + 5, true );
     var pageIndex = dataView.getUint32( pageStart + 18, true );
 
@@ -95,7 +97,7 @@ OggOpusDecoder.prototype.decode = function( typedArray ) {
       }
 
       // End of stream
-      if ( headerType & 4 ) {
+      if ( headerType & 4 || j === length ) {
         this.sendLastBuffer();
       }
     }
